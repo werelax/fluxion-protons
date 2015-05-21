@@ -1,0 +1,8 @@
+/node_modules/
+/out/
+/maqueta/
+/TODO.org
+/src/components/layouts/npm-debug.log
+/npm-debug.log
+.DS_Store
+/**/.DS_Store
