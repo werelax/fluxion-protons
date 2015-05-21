@@ -34,30 +34,12 @@ function navigateTo(route) {
 
 function setPage(componentName) {
   return () => {
-    var anchor = atom.getIn(['navigation', 'anchor'], false);
-    if (anchor) {
-      window.location.hash = anchor;
-    } else {
-      $(document.body).removeClass('menu-is-shown');
-      setTimeout(_.partial(emit, 'ROUTING:SETPAGE', componentName), 0);
-    }
+    setTimeout(_.partial(emit, 'ROUTING:SETPAGE', componentName), 0);
   };
 }
 
-function resetForm() {
-  emit('APPLICATION:RESET:FORM');
-  emit('FUNNEL:CANCEL');
-}
-
 var routes = {
-  home: {path: '/', fn: setPage('Home')},
-  help: {path: '/help', fn: setPage('Help')},
-  policy: {path: '/policy', fn: setPage('Policy')},
-  exemptions: {path: '/exemptions', fn: setPage('Exemptions')},
-  contact: {path: '/contact', fn: setPage('Contact')},
-  checkStatus: {path: '/check', fn: setPage('CheckStatus')},
-  applySuccess: {path: '/apply/ok', fn: setPage('ApplySuccess')},
-  applyFunnel: {path: '/apply', fn: serial(resetForm, setPage('ApplyFunnel'))}
+  home: {path: '/', fn: setPage('Home')}
 };
 
 function start() {

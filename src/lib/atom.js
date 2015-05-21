@@ -1,10 +1,11 @@
-var fn = require('fn.js'),
-    mori = require('mori');
+var r = require('ramda'),
+    mori = require('mori'),
+    proton = require('./proton');
 
 // atom state
 
 var state;
-var listeners = [];
+var listeners = mori.hashMap();
 var atom;
 
 // some utils
@@ -18,20 +19,9 @@ function wrap(op, args) {
   return mori[op].apply(mori, [atom.get()].concat(args));
 }
 
-// simple publisher
-
-var notifySwap = function(state) {
-  for (var i=listeners.length; i--;) listeners[i](state);
-};
-
-// TODO: Think about this: notifySwap being async causes trouble!
-// for ex. if you want to separate command from query, so tue
-// queries from the view can be free from side effects, the .emit()
-// should finish before the query. Maybe this issue can be solve
-// with a promise and promise-propagation betweeen debounced calls.
-// FOR NOW: it remains sync, non-debounced.
-
-// notifySwap = fn.debounce(notifySwap, 0);
+function notifyUpdate(path, p) {
+  mori.each(mori.get(listeners, path, []), cb => cb(p));
+}
 
 // the atom per se
 
@@ -39,35 +29,39 @@ atom = {
   get() {
     return state;
   },
-  silentSwap(newState) {
+  swap(newState) {
     state = newState;
     return newState;
   },
-  swap(newState) {
-    atom.silentSwap(newState);
-    notifySwap(state);
-    return newState;
+  registerProton(p, cb) {
+    var path = proton.getPath(p);
+    listeners = mori.updateIn(listeners, [path],
+                              (l) => mori.conj(l || mori.set(), cb));
   },
-  addChangeListener(cb) {
-    listeners.push(cb);
+  unregisterProton(p, cb) {
+    var path = proton.getPath(p);
+    listeners = mori.updateIn(listeners, [path],
+                              (l) => mori.disj(l, cb));
   },
-  removeChangeListener(cb) {
-    listeners = fn.filter(e => x !== cb, listeners);
+  assimilate(p) {
+    if (!proton.isProton(p))
+      throw new Error('Not a proton!');
+    var path = proton.getPath(p);
+    atom.assocIn(path, proton.unwrap(p));
+    notifyUpdate(path, p);
+  },
+  refresh(p) {
+    return proton.getIn(proton.wrap(atom.get()),
+                        proton.getPath(p));
   }
 };
 
-atom = fn.merge(atom, {
+atom = r.merge(atom, {
   // extend it with some mori ops
-  getIn: fn.compose(fn.partial(wrap, 'getIn'), getArgs),
+  getIn: r.compose(r.partial(wrap, 'getIn'), getArgs),
   // getArgs -> pack arguments list as an array
-  assocIn: fn.compose(atom.swap, fn.partial(wrap, 'assocIn'), getArgs),
-  updateIn: fn.compose(atom.swap, fn.partial(wrap, 'updateIn'), getArgs),
-  silentAssocIn: fn.compose(atom.silentSwap,
-                            fn.partial(wrap, 'assocIn'),
-                            getArgs),
-  silentUpdateIn: fn.compose(atom.silentSwap,
-                             fn.partial(wrap, 'updateIn'),
-                             getArgs)
+  assocIn: r.compose(atom.swap, r.partial(wrap, 'assocIn'), getArgs),
+  updateIn: r.compose(atom.swap, r.partial(wrap, 'updateIn'), getArgs)
 });
 
 module.exports = atom;
