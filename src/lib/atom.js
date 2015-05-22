@@ -44,15 +44,16 @@ atom = {
                               (l) => mori.disj(l, cb));
   },
   assimilate(p) {
-    if (!proton.isProton(p))
-      throw new Error('Not a proton!');
     var path = proton.getPath(p);
-    atom.assocIn(path, proton.unwrap(p));
+    atom.assocIn(mori.intoArray(path), proton.unwrap(p));
     notifyUpdate(path, p);
   },
   refresh(p) {
     return proton.getIn(proton.wrap(atom.get()),
                         proton.getPath(p));
+  },
+  update(fn) {
+    atom.assimilate(fn(atom.get()));
   }
 };
 

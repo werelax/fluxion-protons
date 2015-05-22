@@ -5,11 +5,11 @@ var React = require('react'),
 module.exports = React.createClass({
   mixins: [require('../../mixins/with_proton')],
   onChange(e) {
-    emit('TODO:FORM:CHANGE', this.props.state, e.target.value);
+    emit('TODO:FORM:CHANGE', this.proton(), e.target.value);
   },
   render() {
     console.log('render form!');
-    var state = this.getState(),
+    var state = this.proton(),
         value = _.get(state, 'value', '');
     return (
       <header id="header">

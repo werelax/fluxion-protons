@@ -6,7 +6,7 @@ var mori = require('mori'),
 function protonize(struct, path) {
   if (!r.is(Object, struct)) return struct;
   struct._proton = true;
-  struct._path = path || [];
+  struct._path = path || mori.vector();
   return struct;
 }
 
@@ -14,9 +14,17 @@ function reprotonize(struct, prevProto) {
   return protonize(struct, prevProto._path);
 }
 
+function getPath(proton) {
+  return proton._path || mori.vector();
+}
+
 function subpath(proton, segments) {
-  if (!r.is(Object, proton)) return null;
-  return proton._path.concat(segments);
+  if (!r.is(Object, proton))
+    return null;
+  else if (r.is(Array, segments) || mori.isSeqable(segments))
+    return mori.into(getPath(proton), segments);
+  else
+    return mori.conj(getPath(proton), segments);
 }
 
 function preserveWrap(method) {
@@ -41,19 +49,18 @@ for (let method of ['get', 'getIn'])
 for (let method of ['assoc', 'assocIn', 'updateIn', 'dissoc', 'conj'])
   proton[method] = preserveWrap(proton[method]);
 
-proton.getPath = function(proton) {
-  return proton._path;
-};
-
-proton.isProton = function(proton) {
-  return !!proton._proton;
-};
+proton.getPath = getPath;
 
 proton.unwrap = function(proton) {
   delete proton._proton;
   delete proton._path;
   return proton;
 };
+
+proton.isProton = function(proton) {
+  return !!proton._proton;
+};
+
 
 proton.wrap = protonize;
 
