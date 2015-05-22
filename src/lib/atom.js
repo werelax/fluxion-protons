@@ -45,6 +45,7 @@ atom = {
   },
   assimilate(p) {
     var path = proton.getPath(p);
+    debugger;
     atom.assocIn(mori.intoArray(path), proton.unwrap(p));
     notifyUpdate(path, p);
   },

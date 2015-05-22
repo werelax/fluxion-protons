@@ -16,7 +16,7 @@ module.exports = React.createClass({
       <div>
 	<section id="todoapp">
 
-            <TodoForm state={form} />
+            <TodoForm state={{f: form, t: todos}} />
 	    <TodoList state={todos} />
 
             <TodoFooterSelector state={ui} />

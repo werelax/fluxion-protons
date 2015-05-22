@@ -4,7 +4,13 @@ var _ = require('mori'),
 
 module.exports = {
   update() {
-    this.setState({state: atom.refresh(this.props.state)});
+    var s = {},
+        p = this.proton();
+    if (this._isComposed(p))
+      for (let k in p) s[k] = atom.refresh(p[k]);
+    else
+      s = atom.refresh(p);
+    this.setState({state: s});
   },
   getInitialState() {
     return {};
@@ -15,25 +21,33 @@ module.exports = {
   defaultGetProton() {
     return this.state.state || this.props.state;
   },
-  _wrap(state) {
-    if (_.isCollection(state))
-      return _.vector(state);
-    else if (r.is(Object, state))
-      return _.into(_.vector(), _.vals(_.toClj(state)));
+  _isComposed(s) {
+    return !_.isCollection(s) && r.is(Object, s);
+  },
+  _do: function(s, fn) {
+    if (this._isComposed(s))
+      Object.keys(s).forEach(k => fn(s[k]));
     else
-      return _.vector(state);
+      fn(s);
   },
   shouldComponentUpdate(nextProps, nextState) {
-    var next = nextState.state || nextProps.state;
-    return !_.equals(this._wrap(this.proton()), this._wrap(next));
+    var next = nextState.state || nextProps.state,
+        actual = this.proton();
+    if (this._isComposed(actual)) {
+      for (let k in actual)
+        if (!_.equals(actual[k], next[k])) return true;
+      return false;
+    } else
+      return !_.equals(actual, next);
+
    },
   componentDidMount() {
-    _.each(this._wrap(this.props.state),
-           (p) => atom.registerProton(this.props.state, this.update));
+    this._do(this.props.state,
+             (p) => atom.registerProton(p, this.update));
 
   },
   componentWillUnmount() {
-    _.each(this._wrap(this.props.state),
-           (p) => atom.unregisterProton(this.props.state, this.update));
+    this._do(this.props.state,
+             (p) => atom.unregisterProton(p, this.update));
   }
 };
