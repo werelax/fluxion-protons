@@ -1,67 +1,66 @@
-var mori = require('mori'),
-    r = require('ramda');
+var m = require('mori');
 
-// utils
-
-function protonize(struct, path) {
-  if (!r.is(Object, struct)) return struct;
-  struct._proton = true;
-  struct._path = path || mori.vector();
-  return struct;
-}
-
-function reprotonize(struct, prevProto) {
-  return protonize(struct, prevProto._path);
+function is(type, thing) {
+  return typeof(thing) === type;
 }
 
 function getPath(proton) {
-  return proton._path || mori.vector();
+  return proton.path;
 }
 
-function subpath(proton, segments) {
-  if (!r.is(Object, proton))
-    return null;
-  else if (r.is(Array, segments) || mori.isSeqable(segments))
-    return mori.into(getPath(proton), segments);
+var protonPrototype = {
+  toString: function() {
+    return `#proton<${getPath(this).toString()}>`;
+  }
+};
+
+function isProton(p) {
+  return protonPrototype.isPrototypeOf(p);
+}
+
+function protonize(state, path, defaultValue) {
+  return Object.create(protonPrototype, {
+    state: { value: state },
+    path: { get: () => (path || m.vector()) },
+    defaultValue: { value: defaultValue }
+  });
+}
+
+function deref(proton, path) {
+  if (!isProton(proton))
+    return proton;
+  else if (path !== undefined)
+    // the second undefined? Because babel tail-call optimization is leaky!
+    return deref(derive(proton, path), undefined);
   else
-    return mori.conj(getPath(proton), segments);
+    return m.getIn(proton.state, m.intoArray(getPath(proton)), m.defaultValue);
 }
 
-function preserveWrap(method) {
-  return function(data, ...args) {
-    return reprotonize(method(data, ...args), data);
-  };
+function derivePath(proton, path) {
+  if (Array.isArray(path))
+    return m.into(getPath(proton), path);
+  else
+    return m.conj(getPath(proton), path);
 }
 
-function creationWrap(method) {
-  return function(data, path, ...args) {
-    return protonize(method(data, path, ...args), subpath(data, path));
-  };
+function derive(proton, subpath, defValue) {
+  var path = derivePath(proton, subpath);
+  return protonize(proton.state, path, defValue);
 }
 
-// proton object
+function seq(proton) {
+  return m.map((el, i) => derive(proton, i), deref(proton), m.range());
+}
 
-var proton = Object.create(mori);
+function hash(proton) {
+  return m.hash(getPath(proton));
+}
 
-for (let method of ['get', 'getIn'])
-  proton[method] = creationWrap(proton[method]);
+var deriveSeq = m.comp(seq, derive);
 
-for (let method of ['assoc', 'assocIn', 'updateIn', 'dissoc', 'conj'])
-  proton[method] = preserveWrap(proton[method]);
+var proton = {protonize, isProton, deref, derive, seq, hash, deriveSeq};
+proton.path = getPath;
 
-proton.getPath = getPath;
-
-proton.unwrap = function(proton) {
-  delete proton._proton;
-  delete proton._path;
-  return proton;
-};
-
-proton.isProton = function(proton) {
-  return !!proton._proton;
-};
-
-
-proton.wrap = protonize;
-
-module.exports = proton;
+module.exports = proton.deref;
+for (let k in proton)
+  module.exports[k] = proton[k];

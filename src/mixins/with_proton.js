@@ -1,53 +1,42 @@
-var _ = require('mori'),
+var m = require('mori'),
     r = require('ramda'),
+    proton = require('../lib/proton'),
     atom = require('../lib/atom');
 
+function is(type, thing) {
+  return typeof(thing) === type;
+}
+
+var sortedKeys = r.compose(r.sort, r.keys);
+var derefProp = r.compose(proton.deref, r.prop);
+var pathProp = r.compose(proton.path, r.prop);
+
 module.exports = {
-  update() {
-    var s = {},
-        p = this.proton();
-    if (this._isComposed(p))
-      for (let k in p) s[k] = atom.refresh(p[k]);
-    else
-      s = atom.refresh(p);
-    this.setState({state: s});
-  },
-  getInitialState() {
-    return {};
-  },
   proton() {
-    return (this.getProton || this.defaultGetProton)();
-  },
-  defaultGetProton() {
-    return this.state.state || this.props.state;
-  },
-  _isComposed(s) {
-    return !_.isCollection(s) && r.is(Object, s);
-  },
-  _do: function(s, fn) {
-    if (this._isComposed(s))
-      Object.keys(s).forEach(k => fn(s[k]));
-    else
-      fn(s);
+    return this.props.s;
   },
   shouldComponentUpdate(nextProps, nextState) {
-    var next = nextState.state || nextProps.state,
+    var next = nextProps.s,
         actual = this.proton();
-    if (this._isComposed(actual)) {
-      for (let k in actual)
-        if (!_.equals(actual[k], next[k])) return true;
-      return false;
-    } else
-      return !_.equals(actual, next);
+    switch(true) {
+    case Array.isArray(actual) && Array.isArray(next):
+      return !(r.all(r.apply(m.equals), r.zip(r.map(proton.path, actual),
+                                              r.map(proton.path, next))) &&
+               r.all(r.apply(m.equals), r.zip(r.map(proton.deref, actual),
+                                              r.map(proton.deref, next))));
+    case proton.isProton(actual) && proton.isProton(next):
 
-   },
-  componentDidMount() {
-    this._do(this.props.state,
-             (p) => atom.registerProton(p, this.update));
-
-  },
-  componentWillUnmount() {
-    this._do(this.props.state,
-             (p) => atom.unregisterProton(p, this.update));
+      return !(m.equals(proton.path(actual), proton.path(next)) &&
+               m.equals(proton.deref(next), proton.deref(actual)));
+    case is('object', actual) && is('object', next):
+      return !(r.all(r.apply(m.equals),
+                     r.zip(r.map(pathProp, sortedKeys(actual)),
+                           r.map(pathProp, sortedKeys(next)))) &&
+               r.all(r.apply(m.equals),
+                    r.zip(r.map(derefProp, sortedKeys(actual)),
+                          r.map(derefProp, sortedKeys(next)))));
+    default:
+      return next !== actual;
+    }
   }
 };

@@ -6,6 +6,7 @@ var r = require('ramda'),
 
 var state;
 var listeners = mori.hashMap();
+var observers = [];
 var atom;
 
 // some utils
@@ -43,18 +44,36 @@ atom = {
     listeners = mori.updateIn(listeners, [path],
                               (l) => mori.disj(l, cb));
   },
-  assimilate(p) {
-    var path = proton.getPath(p);
-    debugger;
-    atom.assocIn(mori.intoArray(path), proton.unwrap(p));
-    notifyUpdate(path, p);
+  registerObserver(fn) {
+    observers = r.append(fn, observers);
+  },
+  unregisterObserver(fn) {
+    observers = r.reject(r.eq(fn), observers);
+  },
+  notifyObservers() {
+    r.forEach(r.partialRight(r.call, atom.get()),
+              observers);
+  },
+  assimilate(p, subtree) {
+    var path = proton.path(p);
+    if (mori.count(path) > 0)
+      atom.assocIn(mori.intoArray(path), subtree);
+    else
+      atom.swap(subtree);
+    // notifyUpdate(path, p);
+    atom.notifyObservers();
   },
   refresh(p) {
     return proton.getIn(proton.wrap(atom.get()),
-                        proton.getPath(p));
+                        mori.intoArray(proton.getPath(p)));
   },
   update(fn) {
-    atom.assimilate(fn(atom.get()));
+    atom.swap(fn(atom.get()));
+    atom.notifyObservers();
+  },
+  reload() {
+    // just notify a root refresh
+    atom.update(mori.identity);
   }
 };
 

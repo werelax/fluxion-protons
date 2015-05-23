@@ -28,7 +28,8 @@ dispatcher.sender = function(event) {
 dispatcher.emit = (function(emit) {
   // WARNING: this logger will swallow events if fired too fast!!
   // var logger = fn.debounce(console.log.bind(console, '[ Dispatcher ]>'), 500);
-  var logger = console.log.bind(console, '[ Dispatcher ]>');
+  // var logger = console.log.bind(console, '[ Dispatcher ]>');
+  var logger = () => {};
   return function() {
     var args = [].slice.call(arguments);
     if (args[0] !== 'newListener')

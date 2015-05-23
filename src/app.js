@@ -3,22 +3,24 @@ var atom = require('./lib/atom'),
     initialState = require('./config/initial_state'),
     RootComponent = require('./components/root.jsx'),
     router = require('./routes'),
-    _ = require('mori');
+    m = require('mori');
 
 // Passive stores
 
-require('./stores/fake_insert');
+require('./stores/todos_list');
+require('./stores/todo_item');
+require('./stores/generic_form_input');
 
 // Debug
 
 window.atom = atom;
-window._ = _;
+window.m = m;
 
 //
 
 window.onload = function() {
   // init state atom
-  atom.swap(_.toClj(initialState));
+  atom.swap(m.toClj(initialState));
 
   // init routing
   router.start();

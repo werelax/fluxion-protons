@@ -6,17 +6,17 @@ var App = require('./layouts/app.jsx');
 
 module.exports = React.createClass({
   componentDidMount() {
-    atom.registerProton(atom.get(), this.update);
+    atom.registerObserver(this.update);
   },
   componentDidUnmount() {
-    atom.unregisterProton(atom.get(), this.update);
+    atom.unregisterObserver(this.update);
   },
   update() {
     this.forceUpdate();
   },
   render() {
-    console.log('>>> ROOT: Full Tree Update (optimized)');
-    var state = _.wrap(atom.get());
-    return (<App state={state} />);
+    console.log('~> render root');
+    var state = _.protonize(atom.get());
+    return (<App s={state} />);
   }
 });
