@@ -12,7 +12,7 @@ module.exports = React.createClass({
     atom.unregisterObserver(this.update);
   },
   update() {
-    this.forceUpdate();
+    this.setState({});
   },
   render() {
     console.log('~> render root');

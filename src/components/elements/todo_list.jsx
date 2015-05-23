@@ -8,8 +8,8 @@ var N = require('../../lib/neutron'),
     todosList = require('../../stores/todos_list');
 
 function todoItems(p) {
-  var todos = todosList.getTodosP(p);
-  return m.map((p) => (<TodoItem key={todoItem.getId(p)} s={p} />), todos);
+  return m.map(t => (<TodoItem key={todoItem.getId(t)} s={t} list={p}/>),
+               todosList.getTodosP(p));
 }
 
 module.exports = N(function(proton) {

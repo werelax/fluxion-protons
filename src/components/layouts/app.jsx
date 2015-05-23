@@ -13,7 +13,7 @@ module.exports = N(function(proton) {
   return (
     <div>
 	<section id="todoapp">
-            <TodoForm s={form} />
+            <TodoForm s={form} todos={todos}/>
 	    <TodoList s={todos} />
             <TodoFooterSelector s={todos} />
 	</section>

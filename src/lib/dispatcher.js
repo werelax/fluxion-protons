@@ -16,6 +16,14 @@ dispatcher.listen = function(event, fn) {
 dispatcher.sender = function(event) {
   var args1 = [].slice.call(arguments);
   return function(e) {
+    var args2 = [].slice.call(arguments);
+    dispatcher.emit.apply(dispatcher, args1.concat(args2));
+  };
+};
+
+dispatcher.handler = function(event) {
+  var args1 = [].slice.call(arguments);
+  return function(e) {
     e.preventDefault();
     var args2 = [].slice.call(arguments);
     dispatcher.emit.apply(dispatcher, args1.concat(args2));
