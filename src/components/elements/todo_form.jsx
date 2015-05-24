@@ -8,6 +8,7 @@ var N = require('../../lib/neutron'),
 function onChange(proton, e) {
   emit('INPUT:CHANGE', proton, e.target.value);
 }
+
 function onKey(proton, todos, e) {
   var text = _.deref(proton, 'value');
   if (e.keyCode === 13 && text.length > 0) {

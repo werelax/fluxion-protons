@@ -33,7 +33,11 @@ function deref(proton, path) {
     // the second undefined? Because babel tail-call optimization is leaky!
     return deref(derive(proton, path), undefined);
   else
-    return m.getIn(proton.state, m.intoArray(getPath(proton)), m.defaultValue);
+    return fetch(proton, proton.state);
+}
+
+function fetch(proton, state) {
+  return m.getIn(state, m.intoArray(getPath(proton)), m.defaultValue);
 }
 
 function derivePath(proton, path) {
@@ -58,7 +62,7 @@ function hash(proton) {
 
 var deriveSeq = m.comp(seq, derive);
 
-var proton = {protonize, isProton, deref, derive, seq, hash, deriveSeq};
+var proton = {protonize, isProton, deref, fetch, derive, seq, hash, deriveSeq};
 proton.path = getPath;
 
 module.exports = proton.deref;

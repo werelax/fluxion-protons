@@ -18,34 +18,34 @@ module.exports = {
   // commands
 
   insertTodo: listen('TODO:LIST:INSERT', (proton, text) => {
-    var todos = _.deref(proton),
+    var todos = _.fetch(proton, atom.get()),
         id = m.get(todos, 'id', 0),
         item = todoItem.create(text, id),
         list = m.conj(m.get(todos, 'list'), item);
     atom.assimilate(proton, m.assoc(todos, 'list', list, 'id', ++id));
   }),
   applyFilter: listen('TODO:LIST:FILTER', (proton, filter) => {
-    var todos = _.deref(proton);
+    var todos = _.fetch(proton, atom.get());
     atom.assimilate(proton, m.assoc(todos, 'filter', filter));
   }),
   selectAll: listen('TODO:LIST:SELECT:ALL', (proton, toggle) => {
     var listProton = _.derive(proton, 'list'),
-        list = _.deref(listProton);
+        list = _.fetch(listProton, atom.get());
     list = m.into(m.vector(),
-                  m.map(todoItem.check, _.deref(listProton)));
+                  m.map(todoItem.check, _.fetch(listProton, atom.get())));
     atom.assimilate(listProton, list);
   }),
   clearCompleted: listen('TODO:LIST:CLEAR:COMPLETED', (proton) => {
     var listProton = _.derive(proton, 'list'),
-        list = _.deref(listProton);
+        list = _.fetch(listProton, atom.get());
     list = m.into(m.vector(),
-                  m.remove(todoItem.isChecked, _.deref(listProton)));
+                  m.remove(todoItem.isChecked, _.fetch(listProton, atom.get())));
     atom.assimilate(listProton, list);
   }),
   delete: listen('TODO:LIST:DELETE', (itemProton, todosProton) => {
     var listProton = _.derive(todosProton, 'list'),
-        list = _.deref(listProton),
-        pred = m.partial(m.equals, _.deref(itemProton));
+        list = _.fetch(listProton, atom.get()),
+        pred = m.partial(m.equals, _.fetch(itemProton, atom.get()));
     list = m.into(m.vector(), m.remove(pred, list));
     atom.assimilate(listProton, list);
   }),
