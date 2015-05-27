@@ -75,7 +75,7 @@ module.exports = React.createClass({
 
 ```
 
-It doesn't look like much. Actually, it looks like a step back, with that extra `deref` like. But don't be decieved: we already have achieved a **BIG** win. We *know exactly which path of the atom this components depends on*. What does it mean? You are already guessing it, right? I bet you do! *Automatic `shouldComponentUpdate` render optimization!* Because  now that we have the *pointer to the relevant data* for this particular component, we can pinpoint with 100% certainty if it has changed in the last `atom.swap` or not. We can easily write a mixin speed up our apps.
+It doesn't look like much. Actually, it looks like a step back, with that extra `deref` line. But don't be decieved: we already have achieved a **BIG** win. We *know exactly which path of the atom this components depends on*. What does it mean? You are already guessing it, right? I bet you do! *Automatic `shouldComponentUpdate` render optimization!* Because  now that we have the *pointer to the relevant data* for this particular component, we can pinpoint with 100% certainty if it has changed in the last `atom.swap` or not. We can easily write a mixin speed up our apps.
 
 # Seventh son of the seventh son
 
