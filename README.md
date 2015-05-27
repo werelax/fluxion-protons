@@ -97,9 +97,9 @@ module.exports = React.createClass({
 });
 ```
 
-In this snipppet, `todos` will point to a subtree of `this.state.s`. We don't know *where* `this.state.s` points, and *we don't care*. We don't need to know. That's the responsibility of this component's father. This line of thought allows us design much more reusable components. We could take this whole thing and mount it in any other point of the application as long as the father provide a suitable piece of it's own subtree.
+In this snipppet, `todos` will point to a subtree of `this.props.s`. We don't know *where* `this.props.s` points, and *we don't care*. We don't need to know. That's the responsibility of this component's father. This line of thought allows us design much more reusable components. We could take this whole thing and mount it in any other point of the application as long as the father provide a suitable piece of it's own subtree.
 
-As you can imagine, `deriving` a proton creates a new proton descendant with an accumulative path. For example, look at the previous snippet and imagine that `this.state.s` points to `['application']`, for example. After the derivation, `todos` will point to `['application', 'data', 'todos']`, because the path is *appended* to the path of the original proton we are deriving.
+As you can imagine, `deriving` a proton creates a new proton descendant with an accumulative path. For example, look at the previous snippet and imagine that `this.props.s` points to `['application']`, for example. After the derivation, `todos` will point to `['application', 'data', 'todos']`, because the path is *appended* to the path of the original proton we are deriving.
 
 # The putrid zombie way
 
