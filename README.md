@@ -13,7 +13,7 @@ The fundamental tool and the keystone of my approach is the `proton` as a *point
 To create a proton we need a snapshot of the whole atom state, a path and, optionally, a default value. For example:
 
 ```javascript
-var p = proton.protonize(atom.get(), ['data', 'username']);
+var p = proton.protonize(atom.get(), mori.vector('data', 'username'));
 ```
 
 Would get me a proton `p` *poiting* to the path `['data', 'username']` inside a fresh atom snapshot. We can omit the path parameter to create a proton wrapping the whole atom.
@@ -46,7 +46,7 @@ After we have applied some alterations to the value pointed by the proton, we ca
 
 ```javascript
 
-var userProton = proton.protonize(atom.get(), ['data', 'user']);
+var userProton = proton.protonize(atom.get(), mori.vector('data', 'user'));
 
 // later...
 
